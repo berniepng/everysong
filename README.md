@@ -19,6 +19,7 @@ Live demo: [demo.bernie.studio/everysong](https://demo.bernie.studio/everysong)
 - Mobile-responsive down to 320px
 
 Currently catalogued:
+
 - **BTS** — 386 songs (2013–2026) including all group albums, Japanese releases, solo mixtapes and albums, unit tracks, OSTs, and the 2026 comeback album ARIRANG
 - **Pet Shop Boys** — 350 songs (1984–2025) including all studio albums, B-side collections Alternative and Format, Further Listening bonus disc series, soundtracks, EPs, and collaborations
 
@@ -26,18 +27,18 @@ Currently catalogued:
 
 ## Tech stack
 
-| Layer | Technology |
-|-------|-----------|
-| Runtime | Node.js 22+ |
-| Web framework | Express 4 |
-| Database | SQLite via Node's built-in `node:sqlite` (no native compilation required) |
-| Templating | EJS (server-side rendered — no build step) |
-| Styling | Vanilla CSS with CSS custom properties for theming |
-| Album art | iTunes Search API (fetched at runtime, cached in DB) |
-| Process management | PM2 |
-| Reverse proxy | nginx |
-| Hosting | AWS Lightsail |
-| CI | GitHub Actions |
+| Layer              | Technology                                                                |
+| ------------------ | ------------------------------------------------------------------------- |
+| Runtime            | Node.js 22+                                                               |
+| Web framework      | Express 4                                                                 |
+| Database           | SQLite via Node's built-in `node:sqlite` (no native compilation required) |
+| Templating         | EJS (server-side rendered — no build step)                                |
+| Styling            | Vanilla CSS with CSS custom properties for theming                        |
+| Album art          | iTunes Search API (fetched at runtime, cached in DB)                      |
+| Process management | PM2                                                                       |
+| Reverse proxy      | nginx                                                                     |
+| Hosting            | AWS Lightsail                                                             |
+| CI                 | GitHub Actions                                                            |
 
 **Why these choices:**
 
@@ -129,6 +130,7 @@ song_name,album,sung_by,year_released,highlights
 ```
 
 **Rules:**
+
 - Wrap all values in double quotes
 - Escape internal double quotes by doubling them: `"He said ""hello"""`
 - `sung_by` — use the group name for group tracks, member name(s) for solos/units
@@ -136,6 +138,7 @@ song_name,album,sung_by,year_released,highlights
 - `highlights` — one or two sentences maximum; keep it factual
 
 **Example rows:**
+
 ```csv
 "Dancing Queen","Arrival","ABBA",1976,"Written as a tribute to Queen Elizabeth II; became their signature song and only US #1"
 "Waterloo","Waterloo","ABBA",1974,"Eurovision Song Contest winner 1974; launched them internationally"
@@ -149,24 +152,25 @@ Copy `scripts/seed-bts.js` to `scripts/seed-yourartist.js` and update:
 ```javascript
 // Change the artist details
 db.prepare(`INSERT OR IGNORE INTO artists ...`).run(
-  'abba',                          // slug — used in the URL: /everysong/abba
-  'ABBA',                          // display name
-  'Swedish pop group...',          // description shown on the artist page
-  'Sweden',                        // country — used for flag emoji
-  'Pop, Disco, Dance-pop',         // genre tags
-  1972                             // formed year
+  "abba", // slug — used in the URL: /everysong/abba
+  "ABBA", // display name
+  "Swedish pop group...", // description shown on the artist page
+  "Sweden", // country — used for flag emoji
+  "Pop, Disco, Dance-pop", // genre tags
+  1972, // formed year
 );
 
 // Change the CSV filename
-const csvPath = path.join(__dirname, 'abba_discography.csv');
+const csvPath = path.join(__dirname, "abba_discography.csv");
 
 // Change the iTunes search artist name
-const art = await fetchArt('ABBA', album);
+const art = await fetchArt("ABBA", album);
 ```
 
 ### Step 3 — Add an npm script (optional)
 
 In `package.json`:
+
 ```json
 "scripts": {
   "seed:abba": "node --experimental-sqlite scripts/seed-abba.js"
@@ -207,6 +211,7 @@ All filter parameters stack — e.g. `?year=2020&sung_by=Jimin&sort=name_asc` wo
 See [DEPLOY.md](./DEPLOY.md) for the full step-by-step guide. The short version:
 
 **Requirements:**
+
 - Node.js 22+ (for built-in `node:sqlite`)
 - nginx (for reverse proxy)
 - PM2 (for process management)
@@ -277,7 +282,7 @@ See `.github/workflows/ci.yml`.
 
 ## Built by
 
-**Bernie Png** — [berniepng.com](https://berniepng.com) | [Bernie Studio](https://bernie.studio)
+**Bernie Png** — [berniepng.com](https://berniepng.com)
 
 Part of an ongoing series of portfolio projects built during the NTU Advanced Professional Certificate in Data Science and AI, documenting a pivot from digital marketing leadership into AI/data engineering and technical education.
 
