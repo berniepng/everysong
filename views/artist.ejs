@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= artist.name %> — EverySong</title>
+  <meta name="description" content="Complete discography of <%= artist.name %> — <%= total %> songs catalogued">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500&display=swap">
+  <link rel="stylesheet" href="<%= base %>/public/css/main.css">
+  <link rel="stylesheet" href="<%= base %>/public/css/artist.css">
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav class="site-nav">
+    <a href="<%= base %>/" class="nav-brand">
+      <span class="brand-every">Every</span><span class="brand-song">Song</span>
+    </a>
+    <div class="nav-right">
+      <a href="<%= base %>/" class="nav-back">← All Artists</a>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+        <span class="theme-icon">◐</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Artist Header -->
+  <header class="artist-header">
+    <div class="artist-header-inner">
+      <div class="artist-header-meta">
+        <% if (artist.country === 'South Korea') { %>🇰🇷<% } else if (artist.country === 'United Kingdom') { %>🇬🇧<% } else { %>🎵<% } %>
+        <span class="artist-header-country"><%= artist.country || '' %></span>
+        <span class="artist-header-dot">·</span>
+        <span>Est. <%= artist.formed_year || 'N/A' %></span>
+      </div>
+      <h1 class="artist-header-name"><%= artist.name %></h1>
+      <% if (artist.description) { %>
+      <p class="artist-header-desc"><%= artist.description %></p>
+      <% } %>
+      <div class="artist-header-tags">
+        <% if (artist.genre) { artist.genre.split(',').forEach(function(g) { %><span class="tag"><%= g.trim() %></span><% }); } %>
+      </div>
+      <div class="artist-stat">
+        <span class="stat-num"><%= total %></span>
+        <span class="stat-label">songs found</span>
+        <% if (search || filterYear || filterAlbum || filterSungBy) { %>
+        <a href="<%= base %>/<%= artist.slug %>" class="clear-filters">Clear filters</a>
+        <% } %>
+      </div>
+    </div>
+  </header>
+
+  <!-- Controls bar -->
+  <div class="controls-bar" id="controlsBar">
+    <div class="controls-inner">
+
+      <!-- Search -->
+      <form class="search-form" method="GET" action="<%= base %>/<%= artist.slug %>" id="filterForm">
+        <div class="search-wrap">
+          <span class="search-icon">⌕</span>
+          <input 
+            type="text" 
+            name="search" 
+            class="search-input" 
+            placeholder="Search songs, albums…" 
+            value="<%= search %>"
+            autocomplete="off"
+          >
+          <% if (search) { %>
+          <button type="button" class="search-clear" onclick="clearSearch()">✕</button>
+          <% } %>
+        </div>
+
+        <!-- Hidden filters carried over -->
+        <input type="hidden" name="year" value="<%= filterYear %>">
+        <input type="hidden" name="album" value="<%= filterAlbum %>">
+        <input type="hidden" name="sung_by" value="<%= filterSungBy %>">
+        <input type="hidden" name="sort" value="<%= sortBy %>">
+        <button type="submit" class="sr-only">Search</button>
+      </form>
+
+      <!-- Filter pills row -->
+      <div class="filter-row">
+
+        <!-- Year filter -->
+        <div class="filter-dropdown-wrap">
+          <button class="filter-pill <%= filterYear ? 'active' : '' %>" onclick="toggleDropdown('yearDrop')">
+            Year <% if (filterYear) { %>· <%= filterYear %><% } %> ▾
+          </button>
+          <div class="dropdown-menu" id="yearDrop">
+            <a href="<%= buildUrl(base + '/' + artist.slug, {search, album: filterAlbum, sung_by: filterSungBy, sort: sortBy, year: ''}) %>" class="dropdown-item <%= !filterYear ? 'sel' : '' %>">All Years</a>
+            <% years.forEach(function(y) { %>
+            <a href="<%= buildUrl(base + '/' + artist.slug, {search, album: filterAlbum, sung_by: filterSungBy, sort: sortBy, year: y}) %>" class="dropdown-item <%= filterYear == y ? 'sel' : '' %>"><%= y %></a>
+            <% }); %>
+          </div>
+        </div>
+
+        <!-- Album filter -->
+        <div class="filter-dropdown-wrap">
+          <button class="filter-pill <%= filterAlbum ? 'active' : '' %>" onclick="toggleDropdown('albumDrop')">
+            Album <% if (filterAlbum) { %>· <%= filterAlbum.substring(0,18) %><% if (filterAlbum.length > 18) { %>…<% } %><% } %> ▾
+          </button>
+          <div class="dropdown-menu dropdown-wide" id="albumDrop">
+            <a href="<%= buildUrl(base + '/' + artist.slug, {search, year: filterYear, sung_by: filterSungBy, sort: sortBy, album: ''}) %>" class="dropdown-item <%= !filterAlbum ? 'sel' : '' %>">All Albums</a>
+            <% albums.forEach(function(a) { %>
+            <a href="<%= buildUrl(base + '/' + artist.slug, {search, year: filterYear, sung_by: filterSungBy, sort: sortBy, album: a}) %>" class="dropdown-item <%= filterAlbum === a ? 'sel' : '' %>"><%= a %></a>
+            <% }); %>
+          </div>
+        </div>
+
+        <!-- Sung By filter -->
+        <div class="filter-dropdown-wrap">
+          <button class="filter-pill <%= filterSungBy ? 'active' : '' %>" onclick="toggleDropdown('sungDrop')">
+            Sung By <% if (filterSungBy) { %>· <%= filterSungBy.substring(0,14) %><% } %> ▾
+          </button>
+          <div class="dropdown-menu" id="sungDrop">
+            <a href="<%= buildUrl(base + '/' + artist.slug, {search, year: filterYear, album: filterAlbum, sort: sortBy, sung_by: ''}) %>" class="dropdown-item <%= !filterSungBy ? 'sel' : '' %>">Everyone</a>
+            <% sungByOptions.forEach(function(s) { %>
+            <a href="<%= buildUrl(base + '/' + artist.slug, {search, year: filterYear, album: filterAlbum, sort: sortBy, sung_by: s}) %>" class="dropdown-item <%= filterSungBy === s ? 'sel' : '' %>"><%= s %></a>
+            <% }); %>
+          </div>
+        </div>
+
+        <!-- Sort -->
+        <div class="filter-dropdown-wrap">
+          <button class="filter-pill" onclick="toggleDropdown('sortDrop')">
+            Sort ▾
+          </button>
+          <div class="dropdown-menu" id="sortDrop">
+            <% [['year_asc','Year ↑'],['year_desc','Year ↓'],['name_asc','Name A→Z'],['name_desc','Name Z→A'],['album_asc','Album A→Z']].forEach(function(opt) { %>
+            <a href="<%= buildUrl(base + '/' + artist.slug, {search, year: filterYear, album: filterAlbum, sung_by: filterSungBy, sort: opt[0]}) %>" class="dropdown-item <%= sortBy === opt[0] ? 'sel' : '' %>"><%= opt[1] %></a>
+            <% }); %>
+          </div>
+        </div>
+
+        <!-- View toggle -->
+        <div class="view-toggle">
+          <button class="view-btn active" id="gridBtn" onclick="setView('grid')" title="Grid view">⊞</button>
+          <button class="view-btn" id="listBtn" onclick="setView('list')" title="List view">☰</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Song Gallery -->
+  <main class="gallery-container" id="galleryContainer">
+    <% if (songs.length === 0) { %>
+    <div class="empty-state">
+      <div class="empty-icon">♪</div>
+      <h3>No songs found</h3>
+      <p>Try adjusting your search or filters</p>
+      <a href="<%= base %>/<%= artist.slug %>" class="btn-primary">Reset</a>
+    </div>
+    <% } else { %>
+    <div class="songs-grid" id="songsGrid">
+      <% songs.forEach(function(song, i) { %>
+      <article class="song-card" style="animation-delay: <%= Math.min(i * 0.03, 0.5) %>s">
+        <div class="song-art-wrap">
+          <img 
+            class="song-art" 
+            src="<%= song.art_url || '' %>"
+            data-album="<%= encodeURIComponent(song.album || '') %>"
+            data-artist="<%= encodeURIComponent(artist.name) %>"
+            alt="<%= song.album || song.song_name %> album art"
+            loading="lazy"
+            onerror="handleArtError(this)"
+            <% if (!song.art_url) { %>style="display:none"<% } %>
+          >
+          <div class="song-art-placeholder <%= song.art_url ? 'hidden' : '' %>" aria-hidden="true">
+            <span class="placeholder-note">♪</span>
+            <span class="placeholder-album"><%= (song.album || '').substring(0, 30) %></span>
+          </div>
+          <div class="song-year-badge"><%= song.year_released || '—' %></div>
+        </div>
+
+        <div class="song-info">
+          <h3 class="song-name" title="<%= song.song_name %>"><%= song.song_name %></h3>
+          <% if (song.album) { %>
+          <p class="song-album">
+            <a href="<%= buildUrl(base + '/' + artist.slug, {album: song.album, sort: sortBy}) %>" class="song-filter-link" title="Browse <%= song.album %>"><%= song.album %></a>
+          </p>
+          <% } %>
+          <p class="song-sung-by">
+            <span class="sung-by-label">by</span>
+            <a href="<%= buildUrl(base + '/' + artist.slug, {sung_by: song.sung_by, sort: sortBy}) %>" class="song-filter-link" title="Browse songs by <%= song.sung_by %>"><%= song.sung_by || artist.name %></a>
+          </p>
+          <% if (song.highlights) { %>
+          <p class="song-highlights"><%= song.highlights %></p>
+          <% } %>
+          <div class="song-actions">
+            <a
+              href="https://open.spotify.com/search/<%= encodeURIComponent(song.song_name + ' ' + artist.name) %>"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="spotify-btn"
+              title="Search on Spotify"
+            >
+              <svg class="spotify-icon" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+              Search on Spotify
+            </a>
+          </div>
+        </div>
+      </article>
+      <% }); %>
+    </div>
+    <% } %>
+
+    <!-- Pagination -->
+    <% if (totalPages > 1) { %>
+    <nav class="pagination" aria-label="Pagination">
+      <% if (page > 1) { %>
+      <a href="<%= buildUrl(base + '/' + artist.slug, {search, year: filterYear, album: filterAlbum, sung_by: filterSungBy, sort: sortBy, page: page - 1}) %>" class="pag-btn">← Prev</a>
+      <% } else { %>
+      <span class="pag-btn disabled">← Prev</span>
+      <% } %>
+
+      <div class="pag-pages">
+        <% 
+          const delta = 2;
+          let startPage = Math.max(1, page - delta);
+          let endPage = Math.min(totalPages, page + delta);
+          if (startPage > 1) { 
+        %>
+          <a href="<%= buildUrl(base + '/' + artist.slug, {search, year: filterYear, album: filterAlbum, sung_by: filterSungBy, sort: sortBy, page: 1}) %>" class="pag-num">1</a>
+          <% if (startPage > 2) { %><span class="pag-ellipsis">…</span><% } %>
+        <% } %>
+        <% for (let p = startPage; p <= endPage; p++) { %>
+          <a href="<%= buildUrl(base + '/' + artist.slug, {search, year: filterYear, album: filterAlbum, sung_by: filterSungBy, sort: sortBy, page: p}) %>" class="pag-num <%= p === page ? 'current' : '' %>"><%= p %></a>
+        <% } %>
+        <% if (endPage < totalPages) { %>
+          <% if (endPage < totalPages - 1) { %><span class="pag-ellipsis">…</span><% } %>
+          <a href="<%= buildUrl(base + '/' + artist.slug, {search, year: filterYear, album: filterAlbum, sung_by: filterSungBy, sort: sortBy, page: totalPages}) %>" class="pag-num"><%= totalPages %></a>
+        <% } %>
+      </div>
+
+      <% if (page < totalPages) { %>
+      <a href="<%= buildUrl(base + '/' + artist.slug, {search, year: filterYear, album: filterAlbum, sung_by: filterSungBy, sort: sortBy, page: page + 1}) %>" class="pag-btn">Next →</a>
+      <% } else { %>
+      <span class="pag-btn disabled">Next →</span>
+      <% } %>
+    </nav>
+    <% } %>
+
+  </main>
+
+  <footer class="site-footer" style="border-top: 1px solid var(--border); padding: 2rem; text-align:center; font-family:'DM Sans',sans-serif; font-size:0.78rem; color:var(--fg-subtle);">
+    EverySong · Built by <a href="https://bernie.studio" target="_blank" style="color:var(--accent);text-decoration:none">Bernie Studio</a>
+  </footer>
+
+  <script src="<%= base %>/public/js/theme.js"></script>
+  <script src="<%= base %>/public/js/artist.js"></script>
+</body>
+</html>

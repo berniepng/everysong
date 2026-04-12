@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EverySong — Every Song, Every Artist</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500&display=swap">
+  <link rel="stylesheet" href="<%= base %>/public/css/main.css">
+  <style>
+    /* Landing page specific */
+    .hero {
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: 
+        radial-gradient(ellipse 80% 60% at 20% 80%, rgba(var(--accent-rgb), 0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 80% at 80% 20%, rgba(var(--accent2-rgb), 0.10) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .hero-eyebrow {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      animation: fadeUp 0.6s ease 0.2s forwards;
+    }
+
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(3.5rem, 10vw, 8rem);
+      font-weight: 900;
+      line-height: 0.95;
+      color: var(--fg);
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      animation: fadeUp 0.7s ease 0.35s forwards;
+    }
+
+    .hero-title em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .hero-sub {
+      font-family: 'DM Sans', sans-serif;
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      font-weight: 300;
+      color: var(--fg-muted);
+      max-width: 40ch;
+      line-height: 1.6;
+      margin-bottom: 3rem;
+      opacity: 0;
+      animation: fadeUp 0.7s ease 0.5s forwards;
+    }
+
+    .scroll-hint {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      color: var(--fg-subtle);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      opacity: 0;
+      animation: fadeUp 0.7s ease 0.9s forwards;
+      margin-top: 1rem;
+    }
+
+    /* Artists grid */
+    .artists-section {
+      padding: 6rem 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 3rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .artists-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .artist-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      text-decoration: none;
+      display: block;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .artist-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.06) 0%, transparent 60%);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .artist-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent);
+      box-shadow: 0 12px 40px rgba(var(--accent-rgb), 0.15);
+    }
+
+    .artist-card:hover::before { opacity: 1; }
+
+    .artist-flag {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+
+    .artist-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--fg);
+      margin-bottom: 0.35rem;
+    }
+
+    .artist-meta {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      color: var(--fg-muted);
+      margin-bottom: 1rem;
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .artist-meta span {
+      background: var(--tag-bg);
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.72rem;
+    }
+
+    .artist-count {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      color: var(--fg-muted);
+      margin-top: auto;
+    }
+
+    .artist-count strong {
+      color: var(--accent);
+      font-size: 1.6rem;
+      font-family: 'Playfair Display', serif;
+      display: block;
+      line-height: 1;
+      margin-bottom: 0.15rem;
+    }
+
+    .artist-arrow {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--fg-muted);
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
+    }
+
+    .artist-card:hover .artist-arrow {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    /* Add artist CTA */
+    .add-card {
+      border: 1px dashed var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: var(--fg-subtle);
+      min-height: 180px;
+    }
+
+    .add-card-icon {
+      font-size: 2rem;
+      margin-bottom: 0.75rem;
+      opacity: 0.4;
+    }
+
+    .add-card-text {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+    }
+
+    /* Footer */
+    .site-footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem;
+      text-align: center;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.78rem;
+      color: var(--fg-subtle);
+    }
+
+    .site-footer a { color: var(--accent); text-decoration: none; }
+
+    @media (max-width: 600px) {
+      .artists-grid { grid-template-columns: 1fr; }
+      .artists-section { padding: 3rem 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Nav -->
+  <nav class="site-nav">
+    <a href="<%= base %>/" class="nav-brand">
+      <span class="brand-every">Every</span><span class="brand-song">Song</span>
+    </a>
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+      <span class="theme-icon">◐</span>
+    </button>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <p class="hero-eyebrow">The Complete Music Archive</p>
+    <h1 class="hero-title">Every<br><em>Song</em><br>Ever.</h1>
+    <p class="hero-sub">A curated database of complete discographies — every track, every album, every highlight, searchable and filterable.</p>
+    <p class="scroll-hint">↓ Browse Artists</p>
+  </section>
+
+  <!-- Artists -->
+  <section class="artists-section">
+    <p class="section-label">Artists in the archive</p>
+    <div class="artists-grid">
+      <% artists.forEach(function(artist) { %>
+      <a href="<%= base %>/<%= artist.slug %>" class="artist-card">
+        <span class="artist-arrow">→</span>
+        <span class="artist-flag">
+          <% if (artist.country === 'South Korea') { %>🇰🇷
+          <% } else if (artist.country === 'United Kingdom') { %>🇬🇧
+          <% } else if (artist.country === 'United States') { %>🇺🇸
+          <% } else { %>🎵<% } %>
+        </span>
+        <div class="artist-name"><%= artist.name %></div>
+        <div class="artist-meta">
+          <% if (artist.genre) { artist.genre.split(',').slice(0,2).forEach(function(g) { %><span><%= g.trim() %></span><% }); } %>
+          <% if (artist.formed_year) { %><span>Est. <%= artist.formed_year %></span><% } %>
+        </div>
+        <div class="artist-count">
+          <strong><%= artist.song_count %></strong>
+          songs catalogued
+        </div>
+      </a>
+      <% }); %>
+
+      <!-- Add more artists placeholder -->
+      <div class="add-card">
+        <div class="add-card-icon">＋</div>
+        <div class="add-card-text">More artists<br>coming soon</div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <p>EverySong — Built by <a href="https://bernie.studio" target="_blank">Bernie Studio</a> · Data sourced from official discographies & Wikipedia</p>
+  </footer>
+
+  <script src="<%= base %>/public/js/theme.js"></script>
+</body>
+</html>

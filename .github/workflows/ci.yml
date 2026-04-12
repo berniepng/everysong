@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-test:
+    name: Lint & Test
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [22.x]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Syntax check all JS files
+        run: npm run lint
+
+      - name: Verify database module loads correctly
+        run: node --experimental-sqlite -e "const { initDb } = require('./db/database'); initDb(); console.log('DB module OK');"
+
+      - name: Smoke test seed scripts parse CSVs without error
+        run: |
+          node --experimental-sqlite -e "
+            const fs = require('fs');
+            function parseLine(line) {
+              const result = []; let cur = ''; let inQuote = false;
+              for (let i = 0; i < line.length; i++) {
+                const c = line[i];
+                if (c === '\"') { if (inQuote && line[i+1] === '\"') { cur += '\"'; i++; } else inQuote = !inQuote; }
+                else if (c === ',' && !inQuote) { result.push(cur); cur = ''; }
+                else { cur += c; }
+              }
+              result.push(cur); return result;
+            }
+            function parseCSV(text) {
+              const lines = text.trim().split('\n');
+              const headers = parseLine(lines[0]);
+              return lines.slice(1).map(line => { const vals = parseLine(line); const row = {}; headers.forEach((h,i) => row[h.trim()]=(vals[i]||'').trim()); return row; });
+            }
+            const bts = parseCSV(fs.readFileSync('./scripts/bts_complete_discography.csv','utf8'));
+            const psb = parseCSV(fs.readFileSync('./scripts/psb_complete_discography.csv','utf8'));
+            console.log('BTS CSV:', bts.length, 'songs parsed OK');
+            console.log('PSB CSV:', psb.length, 'songs parsed OK');
+            if (bts.length < 300) throw new Error('BTS CSV too short - may be corrupted');
+            if (psb.length < 300) throw new Error('PSB CSV too short - may be corrupted');
+          "
+
+      - name: Full seed and DB integrity check
+        run: |
+          node --experimental-sqlite -e "
+            const { initDb, getDb } = require('./db/database');
+            function parseLine(line) {
+              const result = []; let cur = ''; let inQuote = false;
+              for (let i = 0; i < line.length; i++) {
+                const c = line[i];
+                if (c === '\"') { if (inQuote && line[i+1] === '\"') { cur += '\"'; i++; } else inQuote = !inQuote; }
+                else if (c === ',' && !inQuote) { result.push(cur); cur = ''; }
+                else { cur += c; }
+              }
+              result.push(cur); return result;
+            }
+            function parseCSV(text) {
+              const lines = text.trim().split('\n');
+              const headers = parseLine(lines[0]);
+              return lines.slice(1).map(line => { const vals = parseLine(line); const row = {}; headers.forEach((h,i) => row[h.trim()]=(vals[i]||'').trim()); return row; });
+            }
+            const fs = require('fs');
+            const db = initDb();
+            // Seed BTS
+            db.prepare('INSERT OR IGNORE INTO artists (slug,name,description,country,genre,formed_year) VALUES (?,?,?,?,?,?)').run('bts','BTS','K-pop group','South Korea','K-Pop',2013);
+            const btsArtist = db.prepare('SELECT id FROM artists WHERE slug = ?').get('bts');
+            db.prepare('DELETE FROM songs WHERE artist_id = ?').run(btsArtist.id);
+            const btsRows = parseCSV(fs.readFileSync('./scripts/bts_complete_discography.csv','utf8'));
+            const ins = db.prepare('INSERT INTO songs (artist_id,song_name,album,sung_by,year_released,highlights,art_url,art_fetched) VALUES (?,?,?,?,?,?,NULL,0)');
+            db.exec('BEGIN');
+            for (const r of btsRows) ins.run(btsArtist.id, r.song_name, r.album, r.sung_by||'BTS', parseInt(r.year_released)||null, r.highlights);
+            db.exec('COMMIT');
+            // Verify
+            const count = db.prepare('SELECT COUNT(*) as n FROM songs WHERE artist_id = ?').get(btsArtist.id).n;
+            console.log('BTS songs in DB:', count);
+            if (count < 300) throw new Error('DB insert count too low');
+            // Test key queries
+            const search = db.prepare('SELECT COUNT(*) as n FROM songs WHERE artist_id = ? AND song_name LIKE ?').get(btsArtist.id, '%Dynamite%').n;
+            console.log('Search Dynamite:', search, 'results');
+            if (search === 0) throw new Error('Search query returned no results');
+            console.log('All DB integrity checks passed');
+          "

@@ -1,0 +1,24 @@
+{
+  "name": "everysong",
+  "version": "1.0.0",
+  "description": "A database-driven music discography explorer. Self-hostable. Add any artist via CSV.",
+  "main": "server.js",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "start": "node --experimental-sqlite server.js",
+    "dev": "node --experimental-sqlite --watch server.js",
+    "seed:bts": "node --experimental-sqlite scripts/seed-bts.js",
+    "seed:psb": "node --experimental-sqlite scripts/seed-psb.js",
+    "seed:all": "npm run seed:bts && npm run seed:psb",
+    "lint": "node --check server.js db/database.js scripts/seed-bts.js scripts/seed-psb.js"
+  },
+  "keywords": ["music", "discography", "k-pop", "bts", "self-hosted", "sqlite", "express"],
+  "license": "MIT",
+  "dependencies": {
+    "compression": "^1.8.1",
+    "ejs": "^3.1.10",
+    "express": "^4.22.1"
+  }
+}
