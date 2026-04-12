@@ -22,7 +22,8 @@ Thumbs.db
 desktop.ini
 
 # ── Editor configs ────────────────────────────────────────────
-.vscode/
+.vscode/*
+!.vscode/settings.json
 .idea/
 *.swp
 *.swo
@@ -33,4 +34,3 @@ desktop.ini
 # ── Build / temp ──────────────────────────────────────────────
 *.tar.gz
 tmp/
-**/.DS_Store
