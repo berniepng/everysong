@@ -22,6 +22,7 @@ Currently catalogued:
 
 - **BTS** — 386 songs (2013–2026) including all group albums, Japanese releases, solo mixtapes and albums, unit tracks, OSTs, and the 2026 comeback album ARIRANG
 - **Pet Shop Boys** — 350 songs (1984–2025) including all studio albums, B-side collections Alternative and Format, Further Listening bonus disc series, soundtracks, EPs, and collaborations
+- **Brandi Carlile** — 156 songs (2005–2026) including all 8 solo studio albums, The Highwomen supergroup album, the Elton John collaboration Who Believes in Angels?, live albums, hidden tracks, and notable features and collaborations
 
 ---
 
