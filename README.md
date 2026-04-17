@@ -8,7 +8,7 @@ Live demo: [demo.bernie.studio/everysong](https://demo.bernie.studio/everysong)
 
 ---
 
-![Banner Description](https://github.com/berniepng/bs-everysong/blob/main/docs/_img/github-banner_everysong.png)
+![Banner Description](https://github.com/berniepng/everysong/blob/main/docs/_img/github-banner_everysong.png)
 
 ## What it does
 
