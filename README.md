@@ -8,6 +8,8 @@ Live demo: [demo.bernie.studio/everysong](https://demo.bernie.studio/everysong)
 
 ---
 
+![Banner Description](https://github.com/berniepng/bs-everysong/blob/main/Git/everysong/docs/_img/github-banner_everysong.png)
+
 ## What it does
 
 - Landing page listing all catalogued artists with song counts
